@@ -267,3 +267,4 @@ h1,h2{letter-spacing:-.015em}
 .cta-phone{font-size:15px;opacity:.9}
 @media (prefers-reduced-motion: reduce){.btn-light:hover{transform:none}}
 .steps{list-style:none;margin:0;padding:0}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}

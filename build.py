@@ -12,7 +12,7 @@ DIST = os.path.join(ROOT, "dist")
 PREVIEW = os.path.join(ROOT, "preview")
 
 PHONE = "+1 (770) 289-5440"
-EMAIL = "connect@focusdesignconsulting.com"
+EMAIL = "connect@kickstarttechsolutions.com"
 BOOK = "https://outlook.office365.com/book/FocusDesignConsultingITServices@focusdesignconsulting.com/"
 LINKEDIN = "https://www.linkedin.com/company/focus-design-consulting/"
 
@@ -106,7 +106,7 @@ FAQS = [
     ("Do we have to sign a long contract?", "No. Managed services run month to month after an initial onboarding period, and projects are quoted individually. We would rather earn your business every month."),
     ("What happens during the free IT assessment?", "We review your current hardware, network, and cloud accounts, usually in about an hour on site or remotely. You get a short written summary with our recommendations and no obligation to buy anything."),
     ("Which brands do you work with?", "We commonly work with Dell, HP, Lenovo, Microsoft, Netgear, and Crucial, and we recommend equipment based on your needs rather than a single vendor's catalog."),
-    ("When are you available?", "Our office hours are Monday to Friday, 9 AM to 8 PM, and Saturday and Sunday, 10 AM to 5 PM. Managed clients are monitored around the clock."),
+    ("When are you available?", "Our office hours are Monday to Friday, 9 AM to 8 PM. Managed clients are monitored around the clock."),
 ]
 
 K_SYMBOL = ""
@@ -149,7 +149,7 @@ def footer():
       </div>
       <div><h4>Services</h4><ul>{svc_links}</ul></div>
       <div><h4>Company</h4><ul><li><a href="about.html">About</a></li><li><a href="faq.html">FAQ</a></li><li><a href="contact.html">Contact</a></li><li><a href="{LINKEDIN}" target="_blank" rel="noopener">LinkedIn</a></li></ul></div>
-      <div><h4>Reach us</h4><ul><li>{PHONE}</li><li class="wrap-any">{EMAIL}</li><li>Mon to Fri, 9 AM to 8 PM</li><li>Sat and Sun, 10 AM to 5 PM</li></ul></div>
+      <div><h4>Reach us</h4><ul><li>{PHONE}</li><li class="wrap-any">{EMAIL}</li><li>Mon to Fri, 9 AM to 8 PM</li></ul></div>
     </div>
     <div class="foot-bottom"><span>© <span id="yr">2026</span> Kickstart Tech Solutions. All rights reserved.</span><span>Hardware · Networking · Managed IT · Consulting</span></div>
   </div>
@@ -413,10 +413,13 @@ def contact_page():
           <div><dt>Phone</dt><dd>{PHONE}</dd></div>
           <div><dt>Email</dt><dd>{EMAIL}</dd></div>
           <div><dt>Book</dt><dd><a href="{BOOK}" target="_blank" rel="noopener">Schedule a free assessment call</a></dd></div>
-          <div><dt>Hours</dt><dd>Mon to Fri, 9 AM to 8 PM<br>Sat and Sun, 10 AM to 5 PM</dd></div>
+          <div><dt>Hours</dt><dd>Mon to Fri, 9 AM to 8 PM</dd></div>
         </dl>
       </div>
-      <form class="quote" id="quote-form" novalidate>
+      <form class="quote" id="quote-form" action="https://formsubmit.co/{EMAIL}" method="POST" data-endpoint="https://formsubmit.co/ajax/{EMAIL}" novalidate>
+        <input type="hidden" name="_subject" value="New assessment request from the KTS website">
+        <input type="hidden" name="_template" value="table">
+        <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name" required></div>
         <div class="field"><label for="f-company">Business name</label><input id="f-company" name="company" autocomplete="organization" required></div>
         <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>

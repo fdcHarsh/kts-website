@@ -14,7 +14,6 @@ PREVIEW = os.path.join(ROOT, "preview")
 PHONE = "+1 (770) 289-5440"
 EMAIL = "connect@kickstarttechsolutions.com"
 BOOK = "https://outlook.office365.com/book/FocusDesignConsultingITServices@focusdesignconsulting.com/"
-LINKEDIN = "https://www.linkedin.com/company/focus-design-consulting/"
 
 FONTS = "https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Source+Sans+3:wght@400;600&display=swap"
 FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 700'%3E%3Crect x='72' y='60' width='196' height='588' fill='%23004AAD'/%3E%3Cpolygon points='298,278 435,60 638,60 298,562' fill='%23000'/%3E%3Cpolygon points='370,510 486,337 648,648 436,648' fill='%23000'/%3E%3C/svg%3E"
@@ -148,7 +147,7 @@ def footer():
         <p>Hardware, networking, managed IT and cloud, and technology consulting for small and mid-sized businesses.</p>
       </div>
       <div><h4>Services</h4><ul>{svc_links}</ul></div>
-      <div><h4>Company</h4><ul><li><a href="about.html">About</a></li><li><a href="faq.html">FAQ</a></li><li><a href="contact.html">Contact</a></li><li><a href="{LINKEDIN}" target="_blank" rel="noopener">LinkedIn</a></li></ul></div>
+      <div><h4>Company</h4><ul><li><a href="about.html">About</a></li><li><a href="faq.html">FAQ</a></li><li><a href="contact.html">Contact</a></li></ul></div>
       <div><h4>Reach us</h4><ul><li>{PHONE}</li><li class="wrap-any">{EMAIL}</li><li>Mon to Fri, 9 AM to 8 PM</li></ul></div>
     </div>
     <div class="foot-bottom"><span>© <span id="yr">2026</span> Kickstart Tech Solutions. All rights reserved.</span><span>Hardware · Networking · Managed IT · Consulting</span></div>

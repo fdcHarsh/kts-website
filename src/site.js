@@ -33,7 +33,7 @@
       if(!name||!co||!em){status.textContent='Please add your name, business name, and email.';return;}
       if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){status.textContent='Please check your email address.';return;}
       var btn=form.querySelector('button[type=submit]'); btn.disabled=true; status.textContent='Sending...';
-      fetch(form.getAttribute('data-endpoint'),{method:'POST',headers:{'Accept':'application/json'},body:new FormData(form)})
+      fetch('https://formsubmit.co/ajax/'+['connect','kickstarttechsolutions.com'].join('@'),{method:'POST',headers:{'Accept':'application/json'},body:new FormData(form)})
         .then(function(r){return r.json().then(function(d){if(!r.ok||String(d.success)!=='true')throw 0;});})
         .then(function(){status.textContent='Thanks, '+name.split(' ')[0]+'. We will be in touch within one business day.';form.reset();})
         .catch(function(){status.textContent='Sorry, that did not send. Please email connect@kickstarttechsolutions.com or call +1 (770) 289-5440.';})

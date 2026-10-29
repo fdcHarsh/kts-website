@@ -416,7 +416,7 @@ def contact_page():
           <div><dt>Hours</dt><dd>Mon to Fri, 9 AM to 8 PM</dd></div>
         </dl>
       </div>
-      <form class="quote" id="quote-form" action="https://formsubmit.co/{EMAIL}" method="POST" data-endpoint="https://formsubmit.co/ajax/{EMAIL}" novalidate>
+      <form class="quote" id="quote-form" method="POST" novalidate>
         <input type="hidden" name="_subject" value="New assessment request from the KTS website">
         <input type="hidden" name="_template" value="table">
         <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">

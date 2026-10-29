@@ -1,0 +1,94 @@
+name: Go live on kickstarttechsolutions.com
+
+# Scheduled switch-over: Oct 30 2026, 7:00 AM EDT (11:00 UTC).
+# The job starts early (GitHub cron can run late), begins the switch at 10:45 UTC
+# so SSL is ready by 7:00 AM EDT, and only acts on 2026-10-30.
+#
+# Manual modes (Actions > Go live > Run workflow):
+#   check    : read-only, plus a create/delete of a temporary TXT record to prove DNS edit access
+#   live     : switch now
+#   rollback : point the domain back at the old server (A 91.108.107.167)
+
+on:
+  schedule:
+    - cron: "20 10 30 10 *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "check, live or rollback"
+        required: true
+        default: check
+
+permissions:
+  contents: read
+
+jobs:
+  go-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      ZONE_ID: 0a4a9e9a9e373ce2a9f7e9a3e97002f1
+      ZONE: kickstarttechsolutions.com
+      PROJECT: kts-website-staging
+      TARGET: kts-website-staging-e56.pages.dev
+      OLD_APEX_IP: 91.108.107.167
+      MODE: ${{ github.event_name == 'schedule' && 'scheduled' || inputs.mode }}
+    steps:
+      - name: Switch DNS and Pages domains
+        run: |
+          set -euo pipefail
+          api() { curl -sS -X "$1" -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json" "https://api.cloudflare.com/client/v4$2" ${3:+--data "$3"}; }
+          ok() { jq -e '.success' >/dev/null || { echo "API call failed"; exit 1; }; }
+
+          if [ "$MODE" = "scheduled" ]; then
+            if [ "$(date -u +%F)" != "2026-10-30" ]; then echo "Not the go-live date, nothing to do."; exit 0; fi
+            start=$(date -u -d "2026-10-30T10:45:00Z" +%s)
+            now=$(date -u +%s)
+            if [ "$now" -lt "$start" ]; then echo "Waiting $((start-now))s until 10:45 UTC"; sleep $((start-now)); fi
+            MODE=live
+          fi
+
+          records() { api GET "/zones/$ZONE_ID/dns_records?name=$1&per_page=50" | jq -c '[.result[] | select(.type=="A" or .type=="AAAA" or .type=="CNAME")]'; }
+          echo "== Current web records"
+          records "$ZONE" | jq .
+          records "www.$ZONE" | jq .
+
+          set_cname() { # name target proxied
+            for id in $(records "$1" | jq -r '.[].id'); do api DELETE "/zones/$ZONE_ID/dns_records/$id" | ok; done
+            api POST "/zones/$ZONE_ID/dns_records" "$(jq -nc --arg n "$1" --arg c "$2" --argjson p "$3" '{type:"CNAME",name:$n,content:$c,proxied:$p,ttl:1}')" | ok
+            echo "Set $1 -> $2"
+          }
+
+          case "$MODE" in
+            check)
+              api GET "/accounts/$CF_ACCOUNT/pages/projects/$PROJECT/domains" | jq '[.result[] | {name,status}]'
+              id=$(api POST "/zones/$ZONE_ID/dns_records" '{"type":"TXT","name":"_kts-golive-check","content":"temporary","ttl":60}' | jq -r '.result.id // empty')
+              [ -n "$id" ] || { echo "DNS edit permission: MISSING"; exit 1; }
+              api DELETE "/zones/$ZONE_ID/dns_records/$id" | ok
+              echo "DNS edit permission: OK"
+              ;;
+            live)
+              for d in "$ZONE" "www.$ZONE"; do
+                api POST "/accounts/$CF_ACCOUNT/pages/projects/$PROJECT/domains" "{\"name\":\"$d\"}" | jq '{success, errors}'
+              done
+              set_cname "$ZONE" "$TARGET" true
+              set_cname "www.$ZONE" "$TARGET" true
+              echo "== Waiting for domains to go active"
+              for i in $(seq 1 40); do
+                st=$(api GET "/accounts/$CF_ACCOUNT/pages/projects/$PROJECT/domains" | jq -r '[.result[] | select(.name=="'"$ZONE"'" or .name=="www.'"$ZONE"'") | .name+"="+.status] | join(" ")')
+                echo "$(date -u +%T) $st"
+                [ "$(echo "$st" | grep -o '=active' | wc -l)" -ge 2 ] && break
+                sleep 30
+              done
+              for h in "$ZONE" "www.$ZONE"; do echo "-- $h"; curl -sI "https://$h/" | grep -iE '^(HTTP|location)' || echo "no response yet"; done
+              ;;
+            rollback)
+              for id in $(records "$ZONE" | jq -r '.[].id'); do api DELETE "/zones/$ZONE_ID/dns_records/$id" | ok; done
+              api POST "/zones/$ZONE_ID/dns_records" "{\"type\":\"A\",\"name\":\"$ZONE\",\"content\":\"$OLD_APEX_IP\",\"proxied\":false,\"ttl\":1}" | ok
+              set_cname "www.$ZONE" "$ZONE" false
+              echo "Rolled back to the old server."
+              ;;
+            *) echo "Unknown mode $MODE"; exit 1 ;;
+          esac

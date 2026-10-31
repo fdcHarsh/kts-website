@@ -71,7 +71,7 @@ jobs:
       - name: Check that the live form loads Turnstile and rejects tokenless posts
         run: |
           sleep 20
-          curl -s https://kickstarttechsolutions.com/contact.html | grep -q "data-sitekey=\"$TURNSTILE_SITEKEY\"" && echo "Widget present on contact page"
+          curl -sL https://kickstarttechsolutions.com/contact | grep -q "data-sitekey=\"$TURNSTILE_SITEKEY\"" && echo "Widget present on contact page" || { echo "Widget missing on contact page"; exit 1; }
           code=$(curl -s -o /dev/null -w '%{http_code}' -X POST https://kickstarttechsolutions.com/api/contact -H 'Content-Type: application/json' -d '{"name":"x","company":"x","email":"x@example.com"}')
           echo "Tokenless submission returned HTTP $code (expect 403)"
           [ "$code" = "403" ]

@@ -11,7 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RESEND_KEY: ${{ secrets.RESEND_API_KEY || secrets.RESEND_KEY || secrets.RESEND }}
+      CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      ZONE_ID: 0a4a9e9a9e373ce2a9f7e9a3e97002f1
     steps:
+      - name: Resend DNS records in Cloudflare
+        run: |
+          curl -s -H "Authorization: Bearer $CF_TOKEN" "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?per_page=100" \
+            | jq '[.result[] | select(.name|test("send|domainkey|_dmarc")) | {name, type, content: (.content|.[0:60]), priority}]'
       - name: Is the function reachable? (invalid payload, expect 400 JSON)
         run: |
           for u in https://kickstarttechsolutions.com https://kts-website-staging-e56.pages.dev; do

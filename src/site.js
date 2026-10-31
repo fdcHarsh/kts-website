@@ -35,7 +35,7 @@
       var btn=form.querySelector('button[type=submit]'); btn.disabled=true; status.textContent='Sending...';
       fetch('/api/contact',{method:'POST',headers:{'Accept':'application/json'},body:new FormData(form)})
         .then(function(r){return r.json().then(function(d){if(!r.ok||!d.ok)throw 0;});})
-        .then(function(){status.textContent='Thanks, '+name.split(' ')[0]+'. We will be in touch within one business day.';form.reset();if(window.turnstile)turnstile.reset();})
+        .then(function(){status.textContent='Thank you, we\'ll get back to you.';form.reset();if(window.turnstile)turnstile.reset();})
         .catch(function(){if(window.turnstile)turnstile.reset();status.textContent='Sorry, that did not send. Please email connect@kickstarttechsolutions.com or call +1 (770) 289-5440.';})
         .then(function(){btn.disabled=false;});
     });

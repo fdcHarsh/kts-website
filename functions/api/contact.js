@@ -1,5 +1,5 @@
 // Contact form handler: validates the submission and emails it via Resend.
-const TO = "connect@kickstarttechsolutions.com";
+const TO = ["harsh@focusdesignconsulting.com", "neelpatel@focusdesignconsulting.com"];
 const DEFAULT_FROM = "Kickstart Tech Solutions Website <website@updates.kickstarttechsolutions.com>";
 
 const json = (body, status = 200) =>
@@ -53,7 +53,7 @@ export async function onRequestPost({ request, env }) {
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       from: env.RESEND_FROM || DEFAULT_FROM,
-      to: [env.CONTACT_TO || TO],
+      to: env.CONTACT_TO ? env.CONTACT_TO.split(",").map((a) => a.trim()) : TO,
       reply_to: f.email,
       subject: `New assessment request: ${f.company}`,
       html,

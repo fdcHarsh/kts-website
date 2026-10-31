@@ -1,5 +1,5 @@
 // Contact form handler: validates the submission and emails it via Resend.
-const TO = ["harsh@focusdesignconsulting.com", "neelpatel@focusdesignconsulting.com"];
+const TO = ["harsh@kickstarttechsolutions.com", "neelpatel@kickstarttechsolutions.com"];
 const DEFAULT_FROM = "Kickstart Tech Solutions Website <website@updates.kickstarttechsolutions.com>";
 
 const json = (body, status = 200) =>

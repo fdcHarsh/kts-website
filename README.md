@@ -18,12 +18,13 @@ This writes `dist/` (the deployable site) and `preview/` (used for previews). Bo
 
 ## Deploy
 
-Every push to `main` runs `.github/workflows/deploy.yml`, which builds the site and deploys `dist/` to the Cloudflare Pages project `kts-website-staging`. You can also run it by hand from the Actions tab.
+Every push to `main` runs `.github/workflows/deploy.yml`, which builds the site and deploys `dist/` plus the contact form function (`functions/api/contact.js`) to the Cloudflare Pages project `kts-website-staging`, which serves kickstarttechsolutions.com. You can also run it by hand from the Actions tab.
 
 The workflow needs two repository secrets:
 
 - `CLOUDFLARE_API_TOKEN` (Cloudflare Pages: Edit permission)
 - `CLOUDFLARE_ACCOUNT_ID`
+- `RESEND_API_KEY` (contact form email via Resend; copied into the Pages project as a secret on each deploy)
 
 Staging lives at https://staging.kickstarttechsolutions.com and is protected by Cloudflare Access (only @focusdesignconsulting.com emails can sign in).
 

@@ -1,21 +1,30 @@
-name: Deploy to Cloudflare Pages (staging)
+name: Deploy to Cloudflare Pages
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      send_test:
+        description: "Send one test submission through the live contact form"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
   deployments: write
 
 concurrency:
-  group: pages-staging
+  group: pages-deploy
   cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      RESEND_KEY: ${{ secrets.RESEND_API_KEY || secrets.RESEND_KEY || secrets.RESEND }}
     steps:
       - uses: actions/checkout@v4
 
@@ -23,12 +32,29 @@ jobs:
         with:
           python-version: "3.12"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Build site
         run: python3 build.py
 
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=kts-website-staging --branch=main --commit-dirty=true
+      - name: Check Resend key and sending domain
+        run: |
+          if [ -z "$RESEND_KEY" ]; then echo "::error::No Resend secret found (expected RESEND_API_KEY)"; exit 1; fi
+          curl -s -H "Authorization: Bearer $RESEND_KEY" https://api.resend.com/domains \
+            | jq '{domains: [.data[]? | {name, status, region}], error: .message}'
+
+      - name: Store Resend key as a Pages secret
+        run: printf %s "$RESEND_KEY" | npx --yes wrangler@3 pages secret put RESEND_API_KEY --project-name=kts-website-staging
+
+      - name: Deploy site and form function
+        run: npx --yes wrangler@3 pages deploy dist --project-name=kts-website-staging --branch=main --commit-dirty=true
+
+      - name: Send a test submission
+        if: ${{ inputs.send_test }}
+        run: |
+          sleep 20
+          curl -s -w '\nHTTP %{http_code}\n' -X POST https://kickstarttechsolutions.com/api/contact \
+            -H 'Content-Type: application/json' -H 'Accept: application/json' \
+            -d '{"name":"Website Test","company":"TEST submission, please ignore","email":"connect@kickstarttechsolutions.com","interest":"Not sure yet","message":"Automated check that the contact form delivers via Resend."}'

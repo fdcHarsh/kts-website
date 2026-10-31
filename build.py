@@ -416,8 +416,6 @@ def contact_page():
         </dl>
       </div>
       <form class="quote" id="quote-form" method="POST" novalidate>
-        <input type="hidden" name="_subject" value="New assessment request from the KTS website">
-        <input type="hidden" name="_template" value="table">
         <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name" required></div>
         <div class="field"><label for="f-company">Business name</label><input id="f-company" name="company" autocomplete="organization" required></div>

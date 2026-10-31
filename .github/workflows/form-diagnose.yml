@@ -1,0 +1,24 @@
+name: Diagnose contact form
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      RESEND_KEY: ${{ secrets.RESEND_API_KEY || secrets.RESEND_KEY || secrets.RESEND }}
+    steps:
+      - name: Is the function reachable? (invalid payload, expect 400 JSON)
+        run: |
+          for u in https://kickstarttechsolutions.com https://kts-website-staging-e56.pages.dev; do
+            echo "-- $u"; curl -s -w '\nHTTP %{http_code}\n' -X POST "$u/api/contact" -H 'Content-Type: application/json' -d '{}'
+          done
+      - name: Send directly through Resend (shows Resend's own error, if any)
+        run: |
+          curl -s -w '\nHTTP %{http_code}\n' https://api.resend.com/emails \
+            -H "Authorization: Bearer $RESEND_KEY" -H 'Content-Type: application/json' \
+            -d '{"from":"Kickstart Tech Solutions Website <website@kickstarttechsolutions.com>","to":["connect@kickstarttechsolutions.com"],"subject":"TEST: KTS form check","text":"Direct Resend test from GitHub Actions. Please ignore."}'

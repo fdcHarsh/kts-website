@@ -23,6 +23,20 @@ export async function onRequestPost({ request, env }) {
   for (const k of ["name", "company", "email", "phone", "interest", "message"]) f[k] = String(data[k] || "").trim().slice(0, 5000);
   if (!f.name || !f.company || !f.email) return json({ ok: false, error: "Missing required fields" }, 400);
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)) return json({ ok: false, error: "Invalid email" }, 400);
+  // Turnstile: once a secret is configured, every submission must carry a valid token.
+  if (env.TURNSTILE_SECRET_KEY) {
+    const token = String(data["cf-turnstile-response"] || "");
+    if (!token) return json({ ok: false, error: "Verification required" }, 403);
+    const form = new FormData();
+    form.append("secret", env.TURNSTILE_SECRET_KEY);
+    form.append("response", token);
+    const ip = request.headers.get("CF-Connecting-IP");
+    if (ip) form.append("remoteip", ip);
+    const check = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form });
+    const outcome = await check.json().catch(() => ({}));
+    if (!outcome.success) return json({ ok: false, error: "Verification failed" }, 403);
+  }
+
   if (!env.RESEND_API_KEY) return json({ ok: false, error: "Email is not configured" }, 500);
 
   const rows = [

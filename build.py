@@ -15,6 +15,9 @@ PHONE = "+1 (770) 289-5440"
 EMAIL = "connect@kickstarttechsolutions.com"
 BOOK = "https://outlook.office365.com/book/FocusDesignConsultingITServices@focusdesignconsulting.com/"
 
+# Turnstile site key is public; the deploy workflow supplies it. Local builds omit the widget.
+TURNSTILE_SITEKEY = os.environ.get("TURNSTILE_SITEKEY", "")
+
 FONTS = "https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Source+Sans+3:wght@400;600&display=swap"
 FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 700'%3E%3Crect x='72' y='60' width='196' height='588' fill='%23004AAD'/%3E%3Cpolygon points='298,278 435,60 638,60 298,562' fill='%23000'/%3E%3Cpolygon points='370,510 486,337 648,648 436,648' fill='%23000'/%3E%3C/svg%3E"
 
@@ -402,6 +405,7 @@ def faq_page():
 
 
 def contact_page():
+    TURNSTILE = (f'<div class="field full"><div class="cf-turnstile" data-sitekey="{TURNSTILE_SITEKEY}" data-theme="light"></div></div>\n        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>' if TURNSTILE_SITEKEY else "")
     return f'''{page_hero("Contact", "Let's get your tech working for you.", "Tell us a little about your business and we will set up a free IT assessment. Expect to hear back within one business day.", [("index.html", "Home"), (None, "Contact")])}
 
   <section class="section contact" aria-label="Contact details and form">
@@ -425,6 +429,7 @@ def contact_page():
           <select id="f-interest" name="interest"><option>Hardware</option><option>Networking</option><option>Managed IT &amp; Cloud</option><option>Consultation</option><option>Not sure yet</option></select>
         </div>
         <div class="field full"><label for="f-msg">How can we help?</label><textarea id="f-msg" name="message" placeholder="For example: we're opening a second location and need Wi-Fi, 10 laptops, and Microsoft 365."></textarea></div>
+        {TURNSTILE}
         <div class="form-foot">
           <button class="btn btn-primary" type="submit">Request my free assessment</button>
           <p class="form-status" id="form-status" role="status" aria-live="polite"></p>

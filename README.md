@@ -29,3 +29,7 @@ The workflow needs two repository secrets:
 Staging lives at https://staging.kickstarttechsolutions.com and is protected by Cloudflare Access (only @focusdesignconsulting.com emails can sign in).
 
 Never commit `.env` or any credentials.
+
+## Contact form
+
+`functions/api/contact.js` emails submissions to connect@kickstarttechsolutions.com via Resend (sender website@updates.kickstarttechsolutions.com). Cloudflare Turnstile protects it: the deploy workflow finds or creates the "KTS website contact form" widget, builds the site with its public site key, and stores its secret in Pages as `TURNSTILE_SECRET_KEY`.

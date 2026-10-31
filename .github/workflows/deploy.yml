@@ -4,11 +4,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      send_test:
-        description: "Send one test submission through the live contact form"
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -36,8 +31,30 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Ensure Turnstile widget
+        run: |
+          set -euo pipefail
+          API="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/challenges/widgets"
+          auth=(-H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json")
+          sitekey=$(curl -s "${auth[@]}" "$API?per_page=50" | jq -r '[.result[]? | select(.name=="KTS website contact form")][0].sitekey // empty')
+          if [ -z "$sitekey" ]; then
+            resp=$(curl -s "${auth[@]}" -X POST "$API" -d '{"name":"KTS website contact form","mode":"managed","domains":["kickstarttechsolutions.com","www.kickstarttechsolutions.com","staging.kickstarttechsolutions.com","kts-website-staging-e56.pages.dev"]}')
+            echo "$resp" | jq -e '.success' >/dev/null || { echo "$resp" | jq '{success, errors}'; exit 1; }
+            sitekey=$(echo "$resp" | jq -r '.result.sitekey')
+            echo "Created Turnstile widget"
+          fi
+          secret=$(curl -s "${auth[@]}" "$API/$sitekey" | jq -r '.result.secret // empty')
+          [ -n "$secret" ] || { echo "Could not read Turnstile secret"; exit 1; }
+          echo "::add-mask::$secret"
+          echo "TURNSTILE_SITEKEY=$sitekey" >> "$GITHUB_ENV"
+          echo "TURNSTILE_SECRET=$secret" >> "$GITHUB_ENV"
+          echo "Turnstile site key: $sitekey"
+
       - name: Build site
         run: python3 build.py
+
+      - name: Store Turnstile secret as a Pages secret
+        run: printf %s "$TURNSTILE_SECRET" | npx --yes wrangler@3 pages secret put TURNSTILE_SECRET_KEY --project-name=kts-website-staging
 
       - name: Check Resend key and sending domain
         run: |
@@ -51,10 +68,10 @@ jobs:
       - name: Deploy site and form function
         run: npx --yes wrangler@3 pages deploy dist --project-name=kts-website-staging --branch=main --commit-dirty=true
 
-      - name: Send a test submission
-        if: ${{ inputs.send_test }}
+      - name: Check that the live form loads Turnstile and rejects tokenless posts
         run: |
           sleep 20
-          curl -s -w '\nHTTP %{http_code}\n' -X POST https://kickstarttechsolutions.com/api/contact \
-            -H 'Content-Type: application/json' -H 'Accept: application/json' \
-            -d '{"name":"Website Test","company":"TEST submission, please ignore","email":"connect@kickstarttechsolutions.com","interest":"Not sure yet","message":"Automated check that the contact form delivers via Resend."}'
+          curl -s https://kickstarttechsolutions.com/contact.html | grep -q "data-sitekey=\"$TURNSTILE_SITEKEY\"" && echo "Widget present on contact page"
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST https://kickstarttechsolutions.com/api/contact -H 'Content-Type: application/json' -d '{"name":"x","company":"x","email":"x@example.com"}')
+          echo "Tokenless submission returned HTTP $code (expect 403)"
+          [ "$code" = "403" ]

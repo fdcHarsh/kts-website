@@ -27,4 +27,4 @@ jobs:
         run: |
           curl -s -w '\nHTTP %{http_code}\n' https://api.resend.com/emails \
             -H "Authorization: Bearer $RESEND_KEY" -H 'Content-Type: application/json' \
-            -d '{"from":"Kickstart Tech Solutions Website <website@kickstarttechsolutions.com>","to":["connect@kickstarttechsolutions.com"],"subject":"TEST: KTS form check","text":"Direct Resend test from GitHub Actions. Please ignore."}'
+            -d '{"from":"Kickstart Tech Solutions Website <website@updates.kickstarttechsolutions.com>","to":["connect@kickstarttechsolutions.com"],"subject":"TEST: KTS form check","text":"Direct Resend test from GitHub Actions. Please ignore."}'

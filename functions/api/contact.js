@@ -1,6 +1,6 @@
 // Contact form handler: validates the submission and emails it via Resend.
 const TO = "connect@kickstarttechsolutions.com";
-const DEFAULT_FROM = "Kickstart Tech Solutions Website <website@kickstarttechsolutions.com>";
+const DEFAULT_FROM = "Kickstart Tech Solutions Website <website@updates.kickstarttechsolutions.com>";
 
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
